@@ -8,7 +8,8 @@
 
 
 import os, sys, time
-import logging  
+import logging
+import numpy as np
 
 ## global
 logger = logging.getLogger('logger')   
@@ -31,7 +32,7 @@ def initConfig(para):
     if not os.path.exists(para['outPath']):
         os.makedirs(para['outPath'])
 
-    ## set up logger to record runtime info
+    # set up logger to record runtime info
     if para['debugMode']:  
         logger.setLevel(logging.DEBUG)
     else:
@@ -54,7 +55,13 @@ def initConfig(para):
     logger.info('Config:')
     config.update(para)
     for name in config:
-        logger.info('%s = %s'%(name, config[name]))
+        if type(config[name]) is np.ndarray:
+            logger.info('%s = [%s]'%(name, ', '.join(format(s, '.2f') for s in config[name])))
+        else:
+            logger.info('%s = %s'%(name, config[name]))
+    
+    # set print format
+    np.set_printoptions(formatter={'float': '{: 0.4f}'.format})
 ########################################################
 
 

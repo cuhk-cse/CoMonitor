@@ -10,7 +10,6 @@ from numpy import linalg as LA
 import time
 import random
 from util import *
-import JGD
 
 
 ########################################################

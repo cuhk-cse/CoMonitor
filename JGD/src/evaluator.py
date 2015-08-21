@@ -8,7 +8,8 @@
 import numpy as np 
 from numpy import linalg as LA
 import time
-from util import *
+from util import * # import logger
+import evaluatorlib
 import cPickle as pickle
 import JGD
 import resulthandler
@@ -23,21 +24,21 @@ def execute(matrix, para):
     if para['parallelMode']: # run on multiple processes
         pool = multiprocessing.Pool()
         for rate in para['samplingRate']: 
-            pool.apply_async(monitor, (matrix, rate, para))
+            pool.apply_async(monitoring, (matrix, rate, para))
         pool.close()
         pool.join()
     else: # run on single processes
         for rate in para['samplingRate']:
-            monitor(matrix, rate, para)
+            monitoring(matrix, rate, para)
     # process the dumped results
     resulthandler.process(para)
 ########################################################
 
 
 ########################################################
-# Function to run the compressive monitor at each density
+# Function to run the compressive monitoring at each density
 # 
-def monitor(matrix, rate, para):
+def monitoring(matrix, rate, para):
     startTime = time.clock()
     logger.info('rate=%.2f starts.'%rate)
     logger.info('----------------------------------------------') 
@@ -59,7 +60,7 @@ def monitor(matrix, rate, para):
     (testVecX, testVecY) = np.where(testMatrix > 0)
     testVec = testMatrix[testVecX, testVecY]
     estiVec = recoveredMatrix[testVecX, testVecY]
-    evalResult = errMetric(testVec, estiVec, para['metrics'])
+    evalResult = evaluatorlib.errMetric(testVec, estiVec, para['metrics'])
     result = (evalResult, runningTime)
     
     # dump the result at each rate
@@ -72,33 +73,3 @@ def monitor(matrix, rate, para):
     logger.info('rate=%.2f done.'%rate)
     logger.info('----------------------------------------------') 
 ########################################################
-
-
-########################################################
-# Function to compute the evaluation metrics
-#
-def errMetric(realVec, estiVec, metrics):
-    result = []
-    absError = np.abs(estiVec - realVec) 
-    mae = np.sum(absError)/absError.shape
-    for metric in metrics:
-        if 'MAE' == metric:
-            result = np.append(result, mae)
-        if 'NMAE' == metric:
-            nmae = mae / (np.sum(realVec) / absError.shape)
-            result = np.append(result, nmae)
-        if 'RMSE' == metric:
-            rmse = LA.norm(absError) / np.sqrt(absError.shape)
-            result = np.append(result, rmse)
-        if 'MRE' == metric or 'NNPRE' == metric:
-            relativeError = absError / realVec
-            if 'MRE' == metric:
-                mre = np.average(relativeError)
-                result = np.append(result, mre)
-            if 'NNPRE' == metric:
-                relativeError = np.sort(relativeError)
-                npre = relativeError[np.floor(0.99 * relativeError.shape[0])] 
-                result = np.append(result, npre)
-    return result
-########################################################
-

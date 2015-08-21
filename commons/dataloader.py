@@ -23,6 +23,11 @@ def load(para):
         datafile = para['dataPath'] + para['dataName'] + '.txt'
         logger.info('Loading data: %s'%os.path.abspath(datafile))
         dataMatrix = np.loadtxt(datafile)
+    elif para['dataName'] == 'ndbc-ctd':
+        datafile = para['dataPath'] + para['dataName'] + '/CTD_7.0N180W_0803290541.cor'
+        logger.info('Loading data: %s'%os.path.abspath(datafile))
+        data = np.genfromtxt(datafile, dtype=np.float64, skip_header=38)
+        dataMatrix = data[:, 1:2] # temperature data
     else:
         logger.error('Data file not found!')
         sys.exit()
@@ -42,7 +47,7 @@ def preprocess(matrix, para):
     if para['dataName'] == 'google-cluster-data':
         matrix = np.where(matrix < 0, 0, matrix)
         matrix = np.where(matrix > 1, 1, matrix)
-        idx = (np.sum(matrix, axis=1) > 0)
+        idx = (np.sum(matrix > 0, axis=1) / float(matrix.shape[1]) > 0.05)
         matrix = matrix[idx, :]
     elif para['dataName'] == 'synthetic_data_icdcs15':
         matrix = matrix[:, 2:]
