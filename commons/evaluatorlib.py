@@ -9,10 +9,10 @@ import numpy as np
 import random
 from numpy import linalg as LA
 
-########################################################
+
+#======================================================#
 # Function to remove the entries of data matrix
-# Return the trainMatrix and the corresponding testing data
-#
+#======================================================#
 def removeEntries(matrix, density, seedID):
     (vecX, vecY) = np.where(matrix > 0)
     vecXY = np.c_[vecX, vecY]
@@ -22,29 +22,15 @@ def removeEntries(matrix, density, seedID):
     randomSequence = range(0, numRecords)
     random.shuffle(randomSequence) # one random sequence per round
     numTrain = int( numAll * density)
-    # by default, we set the remaining QoS records as testing data                     
-    numTest = numRecords - numTrain
     trainXY = vecXY[randomSequence[0 : numTrain], :]
-    testXY = vecXY[randomSequence[- numTest :], :]
-
     trainMatrix = np.zeros(matrix.shape)
     trainMatrix[trainXY[:, 0], trainXY[:, 1]] = matrix[trainXY[:, 0], trainXY[:, 1]]
-    testMatrix = np.zeros(matrix.shape)
-    testMatrix[testXY[:, 0], testXY[:, 1]] = matrix[testXY[:, 0], testXY[:, 1]]
-
-    # ignore invalid testing data: handling all empty rows and columns
-    if trainMatrix.shape[1] > 1:
-        idxX = (np.sum(trainMatrix, axis=1) == 0)
-        testMatrix[idxX, :] = 0
-        idxY = (np.sum(trainMatrix, axis=0) == 0)
-        testMatrix[:, idxY] = 0
-    return trainMatrix, testMatrix
-########################################################
+    return trainMatrix
 
 
-########################################################
+#======================================================#
 # Function to compute the evaluation metrics
-#
+#======================================================#
 def errMetric(realVec, estiVec, metrics):
     result = []
     absError = np.abs(estiVec - realVec) 
@@ -67,6 +53,8 @@ def errMetric(realVec, estiVec, metrics):
                 relativeError = np.sort(relativeError)
                 npre = relativeError[np.floor(0.99 * relativeError.shape[0])] 
                 result = np.append(result, npre)
+        if 'SNR' == metric:
+            snr = 10 * np.log10(np.sum(realVec **2) / np.sum((realVec - estiVec) **2))
+            result = np.append(result, snr)
     return result
-########################################################
 

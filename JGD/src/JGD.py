@@ -9,12 +9,12 @@ import numpy as np
 from numpy import linalg as LA
 import time
 import random
-from util import *
+from commons.util import logger
 
 
-########################################################
+#======================================================#
 # Function to select optimal node monitors
-# 
+#======================================================#
 def selectMonitor(trainMatrix, rate, para):
     numNodes = trainMatrix.shape[0]
     numMonitors = int(round(rate * numNodes))
@@ -33,12 +33,12 @@ def selectMonitor(trainMatrix, rate, para):
     logger.debug('monitor nodes: ' + str(selectedMonitors))
     logger.debug('remaining nodes: ' + str(toEstimateNodes))
     return selectedMonitors, toEstimateNodes
-########################################################
 
 
-########################################################
-# Function to select node monitors with batch selection algorithm
-# 
+#======================================================#
+# Function to select node monitors with batch selection 
+# algorithm
+#======================================================#
 def batchSelection(trainMatrix, rate, para):
     numNodes = trainMatrix.shape[0]
     numMonitors = int(round(rate * numNodes))
@@ -57,19 +57,18 @@ def batchSelection(trainMatrix, rate, para):
             covMatrix_Sl_Sl = covMatrix[np.ix_(Sl, Sl)]
             covMatrix_Sl_Yl = covMatrix[np.ix_(Sl, Yl)]
             obj = np.trace(covMatrix_Yl_Yl\
-                - np.dot(np.dot(covMatrix_Yl_Sl, LA.inv(covMatrix_Sl_Sl)), covMatrix_Sl_Yl))
+                - np.dot(np.dot(covMatrix_Yl_Sl, LA.pinv(covMatrix_Sl_Sl)), covMatrix_Sl_Yl))
             if obj < minObj:
                 xl_star = j
                 minObj = obj
         selectedMonitors.append(toEstimateNodes[xl_star])
         toEstimateNodes.pop(xl_star)
     return selectedMonitors, toEstimateNodes
-########################################################
 
 
-########################################################
+#======================================================#
 # Function to select node monitors with topW algorithm
-# 
+#======================================================#
 def topW(trainMatrix, rate, para):
     numNodes = trainMatrix.shape[0]
     numMonitors = int(round(rate * numNodes))
@@ -79,12 +78,11 @@ def topW(trainMatrix, rate, para):
     selectedMonitors = idx[0:numMonitors]
     toEstimateNodes = idx[numMonitors:]
     return selectedMonitors, toEstimateNodes
-########################################################
 
 
-########################################################
+#======================================================#
 # Function to select node monitors with topW-Update algorithm
-# 
+#======================================================#
 def topW_Update(trainMatrix, rate, para):
     numNodes = trainMatrix.shape[0]
     numMonitors = int(round(rate * numNodes))
@@ -103,15 +101,14 @@ def topW_Update(trainMatrix, rate, para):
         covMatrix_Y_xl = covMatrix[np.ix_(Y, [xl])]
         covMatrix_xl_xl = covMatrix[np.ix_([xl], [xl])]
         covMatrix_xl_Y = covMatrix[np.ix_([xl], Y)]
-        covMatrix = covMatrix_Y_Y - np.dot(np.dot(covMatrix_Y_xl, LA.inv(covMatrix_xl_xl)), 
+        covMatrix = covMatrix_Y_Y - np.dot(np.dot(covMatrix_Y_xl, LA.pinv(covMatrix_xl_xl)), 
             covMatrix_xl_Y)
     return selectedMonitors, toEstimateNodes
-########################################################
 
 
-########################################################
+#======================================================#
 # Function to recover the unobserved values
-# 
+#======================================================#
 def recover(trainMatrix, observedMatrix, selectedMonitors, toEstimateNodes):
     numTestTime = observedMatrix.shape[1]
     avgVec = np.average(trainMatrix, axis=1)
@@ -121,10 +118,9 @@ def recover(trainMatrix, observedMatrix, selectedMonitors, toEstimateNodes):
     covMatrix_YS = covMatrix[np.ix_(toEstimateNodes, selectedMonitors)]
     covMatrix_SS = covMatrix[np.ix_(selectedMonitors, selectedMonitors)]
     estiMatrix = np.tile(toEstiAvgVec, (numTestTime, 1)).T\
-        + np.dot((np.dot(covMatrix_YS, LA.inv(covMatrix_SS))), 
+        + np.dot((np.dot(covMatrix_YS, LA.pinv(covMatrix_SS))), 
                 observedMatrix - np.tile(monitorAvgVec, (numTestTime, 1)).T)
     recoveredMatrix = np.zeros((trainMatrix.shape[0], numTestTime))
     recoveredMatrix[selectedMonitors, :] = observedMatrix
     recoveredMatrix[toEstimateNodes, :] = estiMatrix
     return recoveredMatrix
-########################################################

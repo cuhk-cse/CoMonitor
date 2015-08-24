@@ -8,17 +8,18 @@
 import numpy as np 
 from numpy import linalg as LA
 import time
-from util import * # import logger
-import evaluatorlib
+from commons.util import logger
+from commons import evaluatorlib
 import cPickle as pickle
 import JGD
-import resulthandler
+from commons import resulthandler
 import multiprocessing
 
 
-########################################################
-# Function to evalute the approach for xx rounds at each sampling rate
-# 
+#======================================================#
+# Function to evalute the approach for xx rounds at each 
+# sampling rate
+#======================================================#
 def execute(matrix, para):
     # loop over each sampling rate and each round
     if para['parallelMode']: # run on multiple processes
@@ -32,16 +33,15 @@ def execute(matrix, para):
             monitoring(matrix, rate, para)
     # process the dumped results
     resulthandler.process(para)
-########################################################
+#======================================================#
 
 
-########################################################
+#======================================================#
 # Function to run the compressive monitoring at each density
-# 
+#======================================================#
 def monitoring(matrix, rate, para):
     startTime = time.clock()
-    logger.info('rate=%.2f starts.'%rate)
-    logger.info('----------------------------------------------') 
+    logger.info('rate=%.2f starts.'%rate) 
     (numNode, numTime) = matrix.shape
     trainingPeriod = para['trainingPeriod']
     trainMatrix = matrix[:, 0:trainingPeriod]
@@ -49,11 +49,11 @@ def monitoring(matrix, rate, para):
 
     # JGD algorithm
     startTime = time.clock() # to record the running time for one round
+    logger.info('monitor selection...')
     (selectedMonitors, toEstimateNodes) = JGD.selectMonitor(trainMatrix, rate, para)
-    logger.info('monitor selection done.')
     observedMatrix = testMatrix[selectedMonitors, :]
+    logger.info('JGD estimation...')
     recoveredMatrix = JGD.recover(trainMatrix, observedMatrix, selectedMonitors, toEstimateNodes)
-    logger.info('JGD estimation done.')
     runningTime = float(time.clock() - startTime) 
     
     # calculate the estimation error  
@@ -64,12 +64,9 @@ def monitoring(matrix, rate, para):
     result = (evalResult, runningTime)
     
     # dump the result at each rate
-    if 'dataType' in para.keys():
-        outFile = '%s%s_%s_result_%.2f.tmp'%(para['outPath'], para['dataName'], para['dataType'], rate)
-    else: 
-        outFile = '%s%s_result_%.2f.tmp'%(para['outPath'], para['dataName'], rate)
+    outFile = '%s%s%s_result_%.2f.tmp'%(para['outPath'], para['dataName'], 
+        '_%s'%para['dataType'] if ('dataType' in para.keys()) else '', rate)
     with open(outFile, 'wb') as fid:
             pickle.dump(result, fid)
     logger.info('rate=%.2f done.'%rate)
     logger.info('----------------------------------------------') 
-########################################################

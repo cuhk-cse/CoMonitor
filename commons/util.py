@@ -11,14 +11,14 @@ import os, sys, time
 import logging
 import numpy as np
 
+
 ## global
 logger = logging.getLogger('logger')   
 
-
-########################################################
-# Config the working paths and set up logger
-#
-def initConfig(para):
+#======================================================#
+# Function to set configuartions and set up logger
+#======================================================#
+def setConfig(para):
     config = {'exeFile': os.path.basename(sys.argv[0]),  
               'workPath': os.path.abspath('.'),
               'dataPath': os.path.abspath(para['dataPath'] + para['dataName']),
@@ -62,12 +62,11 @@ def initConfig(para):
     
     # set print format
     np.set_printoptions(formatter={'float': '{: 0.4f}'.format})
-########################################################
 
 
-########################################################
+#======================================================#
 # Formatting the elapsed time into day-hour-min-sec format
-#
+#======================================================#
 def formatElapsedTime(elapsedtime):
     minutes, seconds = divmod(elapsedtime, 60)
     hours, minutes = divmod(minutes, 60)
@@ -81,14 +80,13 @@ def formatElapsedTime(elapsedtime):
  
     duration = ''
     if years > 0:
-        duration += ('%d year' % years + 's'*(years > 1) + ', ')
+        duration += ('%d year' % years + 's' * (years > 1) + ', ')
     if days > 0:
-        duration += ('%d day' % days + 's'*(days > 1) + ', ')
+        duration += ('%d day' % days + 's' * (days > 1) + ', ')
     if hours > 0:
-        duration += ('%d hour' % hours + 's'*(hours > 1) + ', ')
+        duration += ('%d hour' % hours + 's' * (hours > 1) + ', ')
     if minutes > 0:
-        duration += ('%d minute' % minutes + 's'*(minutes > 1) + ', ')
+        duration += ('%d minute' % minutes + 's' * (minutes > 1) + ', ')
     if seconds > 0:
-        duration += ('%.2f second' % seconds + 's'*(seconds > 1) + '.')
+        duration += ('%.2f second' % seconds + 's' * (seconds > 1) + '.')
     return duration
-########################################################
