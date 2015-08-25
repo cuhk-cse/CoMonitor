@@ -1,0 +1,2 @@
+Metric:  |  MAE  |  NMAE  |  RMSE  |  MRE  |  NNPRE  |  SNR  
+rate=0.30: 728.3504  1.0065  732.3674  1.0097  1.1474  -0.0561
