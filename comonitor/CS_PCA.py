@@ -1,5 +1,5 @@
 ########################################################
-# CS_PCA.py: PCA based CS estimation
+# CS_PCA.py: PCA based CS sampling and estimation
 # Author: Jamie Zhu <jimzhu@GitHub>
 # Created: 2015/8/17
 # Last updated: 2015/8/23
@@ -8,8 +8,20 @@
 import numpy as np 
 from numpy import linalg as LA
 import time
-import random
+import commons
 from sklearn.linear_model import Lasso 
+
+
+#======================================================#
+# Sampling to generate trainMatrix, observedMatrix, testMatrix
+#======================================================#
+def sampling(matrix, rate, roundId, para):
+    trainingPeriod = para['trainingPeriod']
+    trainMatrix = matrix[:, 0:trainingPeriod]
+    testMatrix = matrix[:, trainingPeriod:] 
+    seedID = roundId
+    observedMatrix = commons.removeEntries(testMatrix, rate, seedID)
+    return trainMatrix, observedMatrix, testMatrix
 
 
 #======================================================#

@@ -52,7 +52,7 @@ def setConfig(para):
         logger.addHandler(filehandler)  
     
     logger.info('==========================================')
-    logger.info('Config:')
+    logger.info('configs as follows:')
     config.update(para)
     for name in config:
         if type(config[name]) is np.ndarray:

@@ -8,11 +8,11 @@
 import numpy as np 
 import time, sys
 from commons.utils import logger
-from commons import evaluatorlib
+from commons import evallib
 import cPickle as pickle
 from comonitor import CS_PCA
-from commons import resulthandler
 import multiprocessing
+
 
 #======================================================#
 # Function to evalute the approach for xx rounds at each 
@@ -31,8 +31,8 @@ def execute(matrix, para):
         for rate in para['samplingRate']:
             for roundId in xrange(para['rounds']):
                 monitoring(matrix, rate, roundId, para)
-    # process the dumped results
-    resulthandler.process(para)
+    # summarize the dumped results
+    evallib.summarizeResult(para)
 
 
 #======================================================#
@@ -42,32 +42,26 @@ def monitoring(matrix, rate, roundId, para):
     startTime = time.clock()
     logger.info('rate=%.2f starts.'%rate)
 
-    # generate trainMatrix, observedMatrix, testMatrix
-    trainingPeriod = para['trainingPeriod']
-    trainMatrix = matrix[:, 0:trainingPeriod]
-    testMatrix = matrix[:, trainingPeriod:] 
-    seedID = roundId
-    observedMatrix = evaluatorlib.removeEntries(testMatrix, rate, seedID)
+    # sampling
+    logger.info('CS-PCA sampling...')
+    startTime = time.clock() # to record the running time for one round
+    (trainMatrix, observedMatrix, testMatrix) = CS_PCA.sampling(matrix, rate, roundId, para)
 
     # CS-PCA algorithm
     logger.info('CS-PCA estimation...')
-    startTime = time.clock() # to record the running time for one round
     recoveredMatrix = CS_PCA.recover(trainMatrix, observedMatrix, para)
     runningTime = float(time.clock() - startTime) 
     
-    # calculate the estimation error  
-    (testVecX, testVecY) = np.where(testMatrix > 0)
-    testVec = testMatrix[testVecX, testVecY]
-    estiVec = recoveredMatrix[testVecX, testVecY]
-    evalResult = evaluatorlib.errMetric(testVec, estiVec, para['metrics'])
+    # evaluate the estimation error  
+    evalResult = evallib.evaluate(testMatrix, recoveredMatrix, para)
     result = (evalResult, runningTime)
     
     # dump the result at each rate
     outFile = '%s%s%s_result_%.2f%s.tmp'%(para['outPath'], para['dataName'], 
         ('_%s'%para['dataType'] if ('dataType' in para.keys()) else ''), rate, 
         '_round%2d'%(roundId + 1) if (para['rounds'] > 1) else '')
-    with open(outFile, 'wb') as fid:
-            pickle.dump(result, fid)
+    evallib.dumpresult(outFile, result)
+    
     logger.info('rate=%.2f done.'%rate)
     logger.info('----------------------------------------------')
 

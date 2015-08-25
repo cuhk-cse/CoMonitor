@@ -1,19 +1,76 @@
 ########################################################
-# resulthandler.py: get the average values of the results
+# evallib.py: common functions for evaluator.py
 # Author: Jamie Zhu <jimzhu@GitHub>
-# Created: 2014/2/6
-# Last updated: 2015/8/18
+# Created: 2015/8/17
+# Last updated: 2015/8/21
 ########################################################
 
-import numpy as np
+import numpy as np 
+from numpy import linalg as LA
 import os, sys, time
 import cPickle as pickle
- 
+from commons.utils import logger
+
 
 #======================================================#
-# Process the raw results 
+# Function to compute the evaluation metrics
 #======================================================#
-def process(para):
+def evaluate(testMatrix, recoveredMatrix, para):
+    (testVecX, testVecY) = np.where(testMatrix > 0)
+    testVec = testMatrix[testVecX, testVecY]
+    estiVec = recoveredMatrix[testVecX, testVecY]
+    evalResult = errMetric(testVec, estiVec, para['metrics'])
+    return evalResult
+
+
+#======================================================#
+# Function to compute the evaluation metrics
+#======================================================#
+def errMetric(realVec, estiVec, metrics):
+    result = []
+    absError = np.abs(estiVec - realVec) 
+    mae = np.sum(absError)/absError.shape
+    for metric in metrics:
+        if 'MAE' == metric:
+            result = np.append(result, mae)
+        if 'NMAE' == metric:
+            nmae = mae / (np.sum(realVec) / absError.shape)
+            result = np.append(result, nmae)
+        if 'RMSE' == metric:
+            rmse = LA.norm(absError) / np.sqrt(absError.shape)
+            result = np.append(result, rmse)
+        if 'MRE' == metric or 'NNPRE' == metric:
+            relativeError = absError / realVec
+            if 'MRE' == metric:
+                mre = np.average(relativeError)
+                result = np.append(result, mre)
+            if 'NNPRE' == metric:
+                relativeError = np.sort(relativeError)
+                npre = relativeError[np.floor(0.99 * relativeError.shape[0])] 
+                result = np.append(result, npre)
+        if 'SNR' == metric:
+            snr = 10 * np.log10(np.sum(realVec **2) / np.sum((realVec - estiVec) **2))
+            result = np.append(result, snr)
+    return result
+
+
+#======================================================#
+# Dump the raw result into tmp file
+#======================================================#
+def dumpresult(outFile, result):
+    try:
+        with open(outFile, 'wb') as fid:
+                pickle.dump(result, fid)
+    except Exception, e:
+        logger.error('Dump file failed: ' + outFile)
+        logger.error(e)
+        sys.exit()
+
+
+#======================================================#
+# Process the raw result files 
+#======================================================#
+def summarizeResult(para):
     if 'rounds' not in para.keys():
         para['rounds'] = 1
     path = '%s%s%s_result'%(para['outPath'], para['dataName'], 
@@ -35,14 +92,13 @@ def process(para):
             (evalResults[k, rnd, :], timeResults[k, rnd]) = data
         print 'rate=%.2f: '%rate, np.average(evalResults[k, :, :], axis=0)
         k += 1
-
-    saveResult(path, evalResults, timeResults, para)  
+    saveSummaryResult(path, evalResults, timeResults, para)  
 
 
 #======================================================#
-# Save the evaluation results into file
+# Save the summary evaluation results into file
 #======================================================#
-def saveResult(outfile, result, timeinfo, para):
+def saveSummaryResult(outfile, result, timeinfo, para):
     fileID = open(outfile + '.txt', 'w')
     fileID.write('======== Average result summary ========\n')
     fileID.write('Metric:  ')

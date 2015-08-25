@@ -9,8 +9,7 @@ import numpy as np
 from numpy import linalg as LA
 import time
 from commons.utils import logger
-from commons import evaluatorlib
-from commons import resulthandler
+from commons import evallib
 import cPickle as pickle
 from comonitor import JGD
 import multiprocessing
@@ -31,8 +30,8 @@ def execute(matrix, para):
     else: # run on single processes
         for rate in para['samplingRate']:
             monitoring(matrix, rate, para)
-    # process the dumped results
-    resulthandler.process(para)
+    # summarize the dumped results
+    evallib.summarizeResult(para)
 #======================================================#
 
 
@@ -42,30 +41,27 @@ def execute(matrix, para):
 def monitoring(matrix, rate, para):
     startTime = time.clock()
     logger.info('rate=%.2f starts.'%rate) 
-    trainingPeriod = para['trainingPeriod']
-    trainMatrix = matrix[:, 0:trainingPeriod]
-    testMatrix = matrix[:, trainingPeriod:]
 
     # JGD algorithm
     startTime = time.clock() # to record the running time for one round
+    trainingPeriod = para['trainingPeriod']
+    trainMatrix = matrix[:, 0:trainingPeriod]
+    testMatrix = matrix[:, trainingPeriod:]
     logger.info('monitor selection...')
     (selectedMonitors, toEstimateNodes) = JGD.selectMonitor(trainMatrix, rate, para)
-    observedMatrix = testMatrix[selectedMonitors, :]
+    observedMatrix = testMatrix[selectedMonitors, :] 
     logger.info('JGD estimation...')
     recoveredMatrix = JGD.recover(trainMatrix, observedMatrix, selectedMonitors, toEstimateNodes)
     runningTime = float(time.clock() - startTime) 
     
-    # calculate the estimation error  
-    (testVecX, testVecY) = np.where(testMatrix > 0)
-    testVec = testMatrix[testVecX, testVecY]
-    estiVec = recoveredMatrix[testVecX, testVecY]
-    evalResult = evaluatorlib.errMetric(testVec, estiVec, para['metrics'])
+    # evaluate the estimation error  
+    evalResult = evallib.evaluate(testMatrix, recoveredMatrix, para)
     result = (evalResult, runningTime)
     
     # dump the result at each rate
     outFile = '%s%s%s_result_%.2f.tmp'%(para['outPath'], para['dataName'], 
         '_%s'%para['dataType'] if ('dataType' in para.keys()) else '', rate)
-    with open(outFile, 'wb') as fid:
-            pickle.dump(result, fid)
+    evallib.dumpresult(outFile, result)
+    
     logger.info('rate=%.2f done.'%rate)
     logger.info('----------------------------------------------') 
