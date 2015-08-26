@@ -10,7 +10,7 @@ import time, sys
 from commons.utils import logger
 from commons import evallib
 import cPickle as pickle
-from comonitor import CS_PCA
+from CoMonitor import CS_PCA
 import multiprocessing
 
 
@@ -40,7 +40,7 @@ def execute(matrix, para):
 #======================================================#
 def monitoring(matrix, rate, roundId, para):
     startTime = time.clock()
-    logger.info('rate=%.2f starts.'%rate)
+    logger.info('rate=%.2f, %2d-round starts.'%(rate, roundId + 1))
 
     # sampling
     logger.info('CS-PCA sampling...')
@@ -62,7 +62,7 @@ def monitoring(matrix, rate, roundId, para):
         '_round%2d'%(roundId + 1) if (para['rounds'] > 1) else '')
     evallib.dumpresult(outFile, result)
     
-    logger.info('rate=%.2f done.'%rate)
+    logger.info('rate=%.2f, %2d-round done.'%(rate, roundId + 1))
     logger.info('----------------------------------------------')
 
 

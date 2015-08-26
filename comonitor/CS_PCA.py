@@ -3,6 +3,7 @@
 # Author: Jamie Zhu <jimzhu@GitHub>
 # Created: 2015/8/17
 # Last updated: 2015/8/23
+# Implemented approach: CS-PCA [Quer et al., TWC'2012]
 ########################################################
 
 import numpy as np 
@@ -19,8 +20,7 @@ def sampling(matrix, rate, roundId, para):
     trainingPeriod = para['trainingPeriod']
     trainMatrix = matrix[:, 0:trainingPeriod]
     testMatrix = matrix[:, trainingPeriod:] 
-    seedID = roundId
-    observedMatrix = commons.removeEntries(testMatrix, rate, seedID)
+    observedMatrix = commons.removeEntries(testMatrix, rate, roundId)
     return trainMatrix, observedMatrix, testMatrix
 
 

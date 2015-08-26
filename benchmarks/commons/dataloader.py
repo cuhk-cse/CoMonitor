@@ -39,7 +39,10 @@ def load(para):
     elif para['dataName'] == 'Orangelab_sense_temperature':
         datafile = para['dataPath'] + para['dataName'] + '.txt'
         data = np.loadtxt(datafile)
-        print data.shape
+        dataMatrix = preprocess(data, para)
+    elif para['dataName'] == 'EPFL_LUCE_temperature':
+        datafile = para['dataPath'] + para['dataName'] + '.txt'
+        data = np.loadtxt(datafile)
         dataMatrix = preprocess(data, para)
     else:
         logger.error('Data file not found!')
@@ -71,7 +74,8 @@ def preprocess(matrix, para):
                 dataMatrix[int(matrix[i, 1]) - 1, int(matrix[i, 0]) - 1] = matrix[i, 2] 
         idx = np.sum(dataMatrix <= 0, axis=0) <= 10
         dataMatrix = dataMatrix[:, idx]
-    elif para['dataName'] == 'Orangelab_sense_temperature':
+    elif para['dataName'] == 'Orangelab_sense_temperature'\
+        or para['dataName'] == 'EPFL_LUCE_temperature':
         idx = np.sum(matrix <= 0, axis=1) == 0
         dataMatrix = matrix[idx, :]
     else:

@@ -1,1 +1,1 @@
-comonitor (compressive monitoring)
+===CoMonitor (Compressive Monitoring)

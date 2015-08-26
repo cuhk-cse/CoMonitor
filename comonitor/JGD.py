@@ -3,6 +3,7 @@
 # Author: Jamie Zhu <jimzhu@GitHub>
 # Created: 2015/8/17
 # Last updated: 2015/8/17
+# Implemented approach: JGD: [Silvestri et al., ICDCS'2015]
 ########################################################
 
 import numpy as np 

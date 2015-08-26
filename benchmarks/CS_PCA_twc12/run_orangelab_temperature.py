@@ -21,7 +21,7 @@ para = {'dataPath': '../data/', # data path
         'dataName': 'Orangelab_sense_temperature', # set the dataset name     
         'outPath': 'result/', # output path for results
         'metrics': ['MAE', 'NMAE', 'RMSE', 'MRE', 'NNPRE', 'SNR'], # evaluation metrics  
-        'samplingRate': np.arange(0.3, 0.96, 0.05), # sampling rate
+        'samplingRate': np.arange(0.05, 0.96, 0.05), # sampling rate
         'rounds': 1, # how many runs to perform at each sampling rate
         'lmbda': 1e-5, # sparisty regularization parameter
         'trainingPeriod': 33, # training time periods

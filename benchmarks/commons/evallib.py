@@ -46,7 +46,7 @@ def errMetric(realVec, estiVec, metrics):
                 result = np.append(result, mre)
             if 'NNPRE' == metric:
                 relativeError = np.sort(relativeError)
-                npre = relativeError[np.floor(0.99 * relativeError.shape[0])] 
+                npre = relativeError[int(np.floor(0.99 * relativeError.shape[0]))] 
                 result = np.append(result, npre)
         if 'SNR' == metric:
             snr = 10 * np.log10(np.sum(realVec **2) / np.sum((realVec - estiVec) **2))

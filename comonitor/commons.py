@@ -12,16 +12,15 @@ import random
 #======================================================#
 # Function to remove the entries of data matrix
 #======================================================#
-def removeEntries(matrix, density, seedID):
-    (vecX, vecY) = np.where(matrix > 0)
-    vecXY = np.c_[vecX, vecY]
-    numRecords = vecX.size
-    numAll = matrix.size
-    random.seed(seedID)
-    randomSequence = range(0, numRecords)
-    random.shuffle(randomSequence) # one random sequence per round
-    numTrain = int( numAll * density)
-    trainXY = vecXY[randomSequence[0 : numTrain], :]
+def removeEntries(matrix, density, roundId):
+    (numRow, numCol) = matrix.shape
+    seedId = roundId
     removedMatrix = np.zeros(matrix.shape)
-    removedMatrix[trainXY[:, 0], trainXY[:, 1]] = matrix[trainXY[:, 0], trainXY[:, 1]]
+    for i in xrange(numCol):
+        randomSequence = range(0, numRow)
+        random.seed(seedId + i)
+        random.shuffle(randomSequence) # one random sequence 
+        numSample = int(numRow * density)
+        sampleIdx = randomSequence[0 : numSample]
+        removedMatrix[sampleIdx, i] = matrix[sampleIdx, i] 
     return removedMatrix
