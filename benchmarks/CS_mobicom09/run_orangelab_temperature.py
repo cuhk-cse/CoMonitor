@@ -20,8 +20,9 @@ para = {'dataPath': '../data/', # data path
         'dataName': 'Orangelab_sense_temperature', # set the dataset name     
         'outPath': 'result/', # output path for results
         'metrics': ['MAE', 'NMAE', 'RMSE', 'MRE', 'NNPRE', 'SNR'], # evaluation metrics  
-        'samplingRate': np.arange(0.05, 0.96, 0.05), # sampling rate
+        'samplingRate': np.arange(0.3, 0.31, 0.05), # sampling rate
         'rounds': 1, # how many runs to perform at each sampling rate
+        'transform': 'DCT', # transform base: 'DCT', 'DWT-haar', or 'DWT-db4'
         'lmbda': 1e-5, # sparisty regularization parameter
         'trainingPeriod': 33, # training time periods
         'saveTimeInfo': False, # whether to keep track of the running time
@@ -33,7 +34,7 @@ para = {'dataPath': '../data/', # data path
 startTime = time.time() # start timing
 utils.setConfig(para) # set configuration
 logger.info('==============================================')
-logger.info('CS-PCA: [Quer et al., TWC\'2012]')
+logger.info('Compressive Sensing: [Luo et al., MobiCom\'2009].')
 
 # load the dataset
 dataMatrix = dataloader.load(para)

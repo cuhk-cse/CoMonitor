@@ -16,8 +16,7 @@ import multiprocessing
 
 
 #======================================================#
-# Function to evalute the approach for xx rounds at each 
-# sampling rate
+# Function to evalute the approach at each sampling rate
 #======================================================#
 def execute(matrix, para):
     # loop over each sampling rate and each round

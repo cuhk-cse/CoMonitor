@@ -3,7 +3,6 @@
 # Author: Jamie Zhu <jimzhu@GitHub>
 # Created: 2015/8/24
 # Last updated: 2015/8/24
-# Implemented approach: CS-PCA [Quer et al., TWC'2012]
 #########################################################
 
 

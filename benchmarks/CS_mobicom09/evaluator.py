@@ -8,15 +8,14 @@
 import numpy as np 
 import time, sys
 from commons.utils import logger
-from commons import evaluatorlib
+from commons import evallib
 import cPickle as pickle
-from comonitor import CS
-from commons import resulthandler
+from CoMonitor import CS
 import multiprocessing
 from matplotlib.pyplot import plot, show, figure, title
-from scipy.fftpack import dct, idct
+
 #======================================================#
-# Function to evalute the approach for xx rounds at each sampling rate
+# Function to evalute the approach at each sampling rate
 #======================================================#
 def execute(matrix, para):
     # loop over each sampling rate and each round
@@ -32,7 +31,7 @@ def execute(matrix, para):
             for roundId in xrange(para['rounds']):
                 monitoring(matrix, rate, roundId, para)
     # process the dumped results
-    resulthandler.process(para)
+    evallib.summarizeResult(para)
 
 
 #======================================================#
@@ -41,38 +40,36 @@ def execute(matrix, para):
 #======================================================#
 def monitoring(matrix, rate, roundId, para):
     startTime = time.clock()
-    logger.info('rate=%.2f starts.'%rate)
+    logger.info('rate=%.2f, %2d-round starts.'%(rate, roundId + 1))
 
-    # generate observedMatrix, testMatrix
-    trainingPeriod = para['trainingPeriod']
-    testMatrix = matrix[:, trainingPeriod:]
-    seedID = roundId
-    observedMatrix = evaluatorlib.removeEntries(testMatrix, rate, seedID)
+    # sampling
+    logger.info('CS sampling...')
+    startTime = time.clock() # to record the running time for one round
+    # sorting in ascending and permutation
+    idx = np.argsort(-matrix[:, 0])
+    matrix = matrix[idx, :]
+    (trainMatrix, observedMatrix, testMatrix) = CS.sampling(matrix, rate, roundId, para)
 
     # CS algorithm
     logger.info('CS estimation...')
-    startTime = time.clock() # to record the running time for one round
-    recoveredMatrix = CS.recover(matrix, observedMatrix, para)
-    # plot((matrix[:,0]), '-o')
-    # plot(recoveredMatrix[:,0], '-x')
-    # show()
+    recoveredMatrix = CS.recover(trainMatrix, observedMatrix, para)
+    plot((matrix[:,30]), '-o')
+    plot(recoveredMatrix[:,30], '-x')
+    show()
     # sys.exit()
     runningTime = float(time.clock() - startTime) 
     
-    # calculate the estimation error  
-    (testVecX, testVecY) = np.where(testMatrix > 0)
-    testVec = testMatrix[testVecX, testVecY]
-    estiVec = recoveredMatrix[testVecX, testVecY]
-    evalResult = evaluatorlib.errMetric(testVec, estiVec, para['metrics'])
+    # evaluate the estimation error  
+    evalResult = evallib.evaluate(testMatrix, recoveredMatrix, para)
     result = (evalResult, runningTime)
     
     # dump the result at each rate
     outFile = '%s%s%s_result_%.2f%s.tmp'%(para['outPath'], para['dataName'], 
         ('_%s'%para['dataType'] if ('dataType' in para.keys()) else ''), rate, 
         '_round%2d'%(roundId + 1) if (para['rounds'] > 1) else '')
-    with open(outFile, 'wb') as fid:
-            pickle.dump(result, fid)
-    logger.info('rate=%.2f done.'%rate)
+    evallib.dumpresult(outFile, result)
+
+    logger.info('rate=%.2f, %2d-round done.'%(rate, roundId + 1))
     logger.info('----------------------------------------------')
 
 
