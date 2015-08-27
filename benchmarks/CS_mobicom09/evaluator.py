@@ -66,7 +66,7 @@ def monitoring(matrix, rate, roundId, para):
     # dump the result at each rate
     outFile = '%s%s%s_result_%.2f%s.tmp'%(para['outPath'], para['dataName'], 
         ('_%s'%para['dataType'] if ('dataType' in para.keys()) else ''), rate, 
-        '_round%2d'%(roundId + 1) if (para['rounds'] > 1) else '')
+        '_round%02d'%(roundId + 1) if (para['rounds'] > 1) else '')
     evallib.dumpresult(outFile, result)
 
     logger.info('rate=%.2f, %2d-round done.'%(rate, roundId + 1))

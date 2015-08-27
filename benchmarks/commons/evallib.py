@@ -85,7 +85,7 @@ def summarizeResult(para):
     for rate in para['samplingRate']:
         for rnd in xrange(para['rounds']):
             inputfile = path + '_%.2f%s.tmp'%(rate, 
-                '_round%2d'%(rnd + 1) if (para['rounds'] > 1) else '')
+                '_round%02d'%(rnd + 1) if (para['rounds'] > 1) else '')
             with open(inputfile, 'rb') as fid:
                 data = pickle.load(fid)
             os.remove(inputfile)
